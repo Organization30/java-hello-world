@@ -1,0 +1,49 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Tomcat Java CI with maven
+
+# Controls when the workflow will run
+on:
+  
+  #push:
+    #branches: master
+    
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+    - name: Build & Deploy Package Maven
+      run: mvn -B package --file ${{github.workspace}}/pom.xml
+    
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.3.1
+      with:
+       name: maven-artifact
+       path: ${{github.workspace}}/target/*.jar
+  deploy:
+   runs-on: win-server
+   needs: build   
+   steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v2.1.0
+        with:
+          name: maven-artifact
+
+          path: C:\Users\rameshkumar\projects\maven-artifact
+      - name: deploy to tomcat
+        run: | 
+         xcopy C:\Users\rameshkumar\projects\maven-artifact "C:\Program Files\Apache Software Foundation\Tomcat 10.0\webapps\"
+
+      
+    
